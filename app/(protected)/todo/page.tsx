@@ -137,8 +137,8 @@ export default function TeamTodoPage() {
 
   return (
     <PageShell
-      title="Team todos"
-      description="Work assigned from client portfolio notes. Pick an employee to see their tasks."
+      title="Assignment"
+      description="Work assigned from client portfolio notes. Pick an employee to see their assignments."
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(240px,300px)_1fr] min-h-[calc(100vh-12rem)]">
         <aside className="rounded-xl border border-gold/20 bg-surface-card overflow-hidden flex flex-col min-h-[320px] lg:max-h-[calc(100vh-12rem)]">

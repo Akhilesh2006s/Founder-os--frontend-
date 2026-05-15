@@ -19,7 +19,7 @@ const navItems = [
   { href: "/expenses", label: "Expenses" },
   { href: "/finance", label: "Finance" },
   { href: "/employees", label: "Employees" },
-  { href: "/todo", label: "Team todos" },
+  { href: "/todo", label: "Assignment" },
   { href: "/operations", label: "Operations" },
   { href: "/meetings", label: "Meetings" },
   { href: "/visitors", label: "Visitors" },

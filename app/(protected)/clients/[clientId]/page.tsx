@@ -97,35 +97,6 @@ function TaskChip({ task }: { task: LeanTask }) {
   );
 }
 
-function currentMonthKey() {
-  return new Date().toISOString().slice(0, 7);
-}
-
-function monthKeyFromIso(iso?: string) {
-  if (!iso) return "";
-  try {
-    const d = new Date(iso);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    return `${y}-${m}`;
-  } catch {
-    return "";
-  }
-}
-
-function formatReportMonth(monthKey: string) {
-  if (!monthKey) return "—";
-  try {
-    const [y, m] = monthKey.split("-").map(Number);
-    return new Date(y, m - 1, 1).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "long"
-    });
-  } catch {
-    return monthKey;
-  }
-}
-
 function formatReportDay(iso?: string) {
   if (!iso) return "—";
   try {
@@ -139,14 +110,29 @@ function formatReportDay(iso?: string) {
   }
 }
 
-/** ISO date string for a new update in the selected month (today if current month, else 1st). */
-function reportDateForMonth(monthKey: string) {
-  const now = new Date();
-  const [y, m] = monthKey.split("-").map(Number);
-  if (now.getFullYear() === y && now.getMonth() + 1 === m) {
-    return now.toISOString().slice(0, 10);
+function toDateInput(iso?: string) {
+  if (!iso) return todayDateInput();
+  try {
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  } catch {
+    return todayDateInput();
   }
-  return `${monthKey}-01`;
+}
+
+function todayDateInput() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function reportDateToIso(dateInput: string) {
+  return new Date(`${dateInput}T12:00:00`).toISOString();
 }
 
 function EditProjectModal({
@@ -266,12 +252,12 @@ function EditUpdateModal({
 }) {
   const id = useId();
   const [note, setNote] = useState("");
-  const [reportMonth, setReportMonth] = useState("");
+  const [reportDate, setReportDate] = useState("");
 
   useEffect(() => {
     if (!open || !initial) return;
     setNote(initial.note);
-    setReportMonth(monthKeyFromIso(initial.reportDate) || currentMonthKey());
+    setReportDate(toDateInput(initial.reportDate));
   }, [open, initial]);
 
   useEffect(() => {
@@ -303,12 +289,12 @@ function EditUpdateModal({
           Edit daily update
         </h2>
         <div className="space-y-2">
-          <label className="text-[11px] text-muted">Month</label>
+          <label className="text-[11px] text-muted">Date</label>
           <input
-            type="month"
+            type="date"
             className="w-full rounded-lg bg-surface-lift px-3 py-2 text-sm"
-            value={reportMonth}
-            onChange={(e) => setReportMonth(e.target.value)}
+            value={reportDate}
+            onChange={(e) => setReportDate(e.target.value)}
           />
           <label className="text-[11px] text-muted">Update</label>
           <textarea
@@ -331,7 +317,9 @@ function EditUpdateModal({
             type="button"
             className="rounded-lg bg-gold-cta px-4 py-2 text-sm font-semibold text-black shadow-gold hover:brightness-110 disabled:opacity-50"
             disabled={isLoading || !note.trim()}
-            onClick={() => onSave({ note: note.trim(), reportDate: reportDateForMonth(reportMonth) })}
+            onClick={() =>
+              onSave({ note: note.trim(), reportDate: reportDateToIso(reportDate) })
+            }
           >
             {isLoading ? "Saving…" : "Save"}
           </button>
@@ -464,7 +452,9 @@ export default function ClientHubPage() {
   const [projectName, setProjectName] = useState("");
   const [projectStatus, setProjectStatus] = useState<(typeof PROJECT_STATUSES)[number]>("Active");
   const [projectNotes, setProjectNotes] = useState("");
-  const [updateDrafts, setUpdateDrafts] = useState<Record<string, { note: string; month: string }>>({});
+  const [updateDrafts, setUpdateDrafts] = useState<
+    Record<string, { note: string; reportDate: string }>
+  >({});
 
   const [editProject, setEditProject] = useState<{
     projectId: string;
@@ -744,13 +734,11 @@ export default function ClientHubPage() {
               const pid = row.portfolio?._id;
               const defaultDraft = {
                 note: "",
-                month: currentMonthKey()
+                reportDate: todayDateInput()
               };
               const draft = pid ? (updateDrafts[pid] ?? defaultDraft) : defaultDraft;
 
-              const sortedUpdates = [...(row.portfolio?.updates ?? [])]
-                .filter((u) => monthKeyFromIso(u.reportDate) === draft.month)
-                .sort((a, b) => {
+              const sortedUpdates = [...(row.portfolio?.updates ?? [])].sort((a, b) => {
                   const ta = a.reportDate ? new Date(a.reportDate).getTime() : 0;
                   const tb = b.reportDate ? new Date(b.reportDate).getTime() : 0;
                   return tb - ta;
@@ -811,15 +799,15 @@ export default function ClientHubPage() {
                       </p>
                       <div className="flex flex-wrap gap-2 items-end">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-muted">Month</span>
+                          <span className="text-[10px] text-muted">Date</span>
                           <input
-                            type="month"
-                            className="rounded-lg bg-surface-lift px-2 py-1.5 text-xs"
-                            value={draft.month}
+                            type="date"
+                            className="rounded-lg bg-surface-lift px-2 py-1.5 text-xs min-w-[9.5rem]"
+                            value={draft.reportDate ?? todayDateInput()}
                             onChange={(e) =>
                               setUpdateDrafts((prev) => ({
                                 ...prev,
-                                [pid]: { ...draft, month: e.target.value }
+                                [pid]: { ...draft, reportDate: e.target.value }
                               }))
                             }
                           />
@@ -843,7 +831,7 @@ export default function ClientHubPage() {
                             addUpdateMutation.mutate({
                               projectId: pid,
                               note: draft.note.trim(),
-                              reportDate: reportDateForMonth(draft.month)
+                              reportDate: reportDateToIso(draft.reportDate)
                             })
                           }
                         >
@@ -916,7 +904,7 @@ export default function ClientHubPage() {
                         ))}
                         {!sortedUpdates.length && (
                           <li className="text-xs text-muted/80">
-                            No updates in {formatReportMonth(draft.month)} — log the first one above.
+                            No updates yet — log the first one above.
                           </li>
                         )}
                       </ul>
