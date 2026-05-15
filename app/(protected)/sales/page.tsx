@@ -28,7 +28,6 @@ type Client = {
   company: string;
   contactPerson: string;
   dealValue?: number;
-  paymentStatus?: string;
 };
 
 const PIPELINE = [
@@ -172,19 +171,6 @@ export default function SalesPage() {
     },
     onError: (err) => toastApiError(err, "Could not delete lead")
   });
-
-  function patchLeadStage(leadId: string, nextStage: string) {
-    if (nextStage === "Lost") {
-      stageMutation.mutate({
-        id: leadId,
-        stage: nextStage,
-        lostReason:
-          lostReasonDraft.trim().length >= 2 ? lostReasonDraft : "No reason captured"
-      });
-    } else {
-      stageMutation.mutate({ id: leadId, stage: nextStage });
-    }
-  }
 
   const columns = useMemo(() => {
     const items = leadsQuery.data ?? [];
@@ -385,7 +371,7 @@ export default function SalesPage() {
 
       <div className="rounded-xl border border-gold/20 bg-surface-card p-3">
         <ScrollContainer horizontal ariaLabel="Sales pipeline kanban" className="max-w-full">
-          <div className="flex h-[min(520px,calc(100dvh-14rem))] isolate gap-3 pr-1 pb-1 min-w-[1100px]">
+          <div className="flex min-h-[200px] max-h-[min(380px,calc(100dvh-22rem))] isolate gap-3 pr-1 pb-1 min-w-[1100px]">
           {columns.map((column) => (
             <div
               key={column.stage}
@@ -480,154 +466,13 @@ export default function SalesPage() {
         </ScrollContainer>
       </div>
 
-      <ScrollContainer ariaLabel="Leads by stage" className="max-h-[min(560px,calc(100dvh-10rem))] space-y-3 pr-1">
-      <div className="space-y-3">
-        <div>
-          <p className="text-sm font-medium text-ink-secondary">Leads by stage</p>
-          <p className="text-xs text-muted">
-            Same card + table styling as Clients below; one card per pipeline stage.
-          </p>
-          {!leadsQuery.isLoading && !(leadsQuery.data?.length ?? 0) ? (
-            <p className="mt-2 text-xs text-muted/90">No leads yet · add one above.</p>
-          ) : null}
-        </div>
-        {leadsQuery.isLoading ? (
-          <p className="rounded-xl border border-gold/20 bg-surface-card p-8 text-center text-sm text-muted">
-            Loading leads…
-          </p>
-        ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {columns.map(({ stage, leads: stageLeads }) => {
-            const convertibleInStage = stageLeads.filter(leadCanManualConvert);
-            const stageAllSelected =
-              convertibleInStage.length > 0 &&
-              convertibleInStage.every((l) => selectedLeadIds.has(l._id));
 
-            function toggleStageSelect() {
-              setSelectedLeadIds((prev) => {
-                const next = new Set(prev);
-                if (stageAllSelected) {
-                  convertibleInStage.forEach((l) => next.delete(l._id));
-                } else {
-                  convertibleInStage.forEach((l) => next.add(l._id));
-                }
-                return next;
-              });
-            }
-
-            return (
-            <div
-              key={stage}
-              className="rounded-xl border border-gold/20 bg-surface-card overflow-x-auto"
-            >
-              <div className="p-4 border-b border-gold/20">
-                <p className="text-sm font-medium text-ink-secondary">{stage}</p>
-                <p className="text-xs text-muted">
-                  {stageLeads.length === 0
-                    ? "No leads in this stage."
-                    : `${stageLeads.length} ${stageLeads.length === 1 ? "lead" : "leads"} · use checkboxes + Manual push, or convert from Negotiation.`}
-                </p>
-              </div>
-              {stageLeads.length ? (
-                <table className="w-full text-sm min-w-[360px]">
-                  <thead>
-                    <tr className="text-left border-b border-gold/20 text-muted">
-                      <th className="p-3 w-10">
-                        {convertibleInStage.length ? (
-                          <input
-                            type="checkbox"
-                            className="h-3.5 w-3.5 accent-gold rounded border-gold/40"
-                            title="Select all eligible in this stage"
-                            checked={stageAllSelected}
-                            onChange={toggleStageSelect}
-                          />
-                        ) : null}
-                      </th>
-                      <th className="p-3">Company</th>
-                      <th className="p-3">Contact</th>
-                      <th className="p-3 text-right">Deal value</th>
-                      <th className="p-3">Move</th>
-                      <th className="p-3 text-right text-xs font-normal">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stageLeads.map((lead) => (
-                      <tr key={lead._id} className="border-b border-gold/20 hover:bg-surface">
-                        <td className="p-3 align-middle">
-                          {leadCanManualConvert(lead) ? (
-                            <input
-                              type="checkbox"
-                              className="h-3.5 w-3.5 accent-gold rounded border-gold/40"
-                              checked={selectedLeadIds.has(lead._id)}
-                              onChange={() => toggleLeadSelection(lead._id)}
-                              aria-label={`Select ${lead.company}`}
-                            />
-                          ) : (
-                            <span className="text-[10px] text-muted/60">—</span>
-                          )}
-                        </td>
-                        <td className="p-3 font-medium">{lead.company}</td>
-                        <td className="p-3 text-muted">{lead.contactPerson}</td>
-                        <td className="p-3 text-right">
-                          {lead.estimatedDealValue != null ? formatInr(lead.estimatedDealValue) : "—"}
-                        </td>
-                        <td className="p-3">
-                          <select
-                            className="w-full max-w-[10rem] rounded-lg bg-surface-lift px-2 py-1.5 text-xs"
-                            value={lead.stage}
-                            onChange={(e) => patchLeadStage(lead._id, e.target.value)}
-                          >
-                            {PIPELINE.map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="p-3 text-right">
-                          <div className="flex flex-col items-end gap-2">
-                            {lead.stage === "Negotiation" && !lead.convertedClientId ? (
-                              <button
-                                type="button"
-                                className="rounded-lg bg-gold-cta px-2.5 py-1 text-xs font-semibold shadow-gold hover:brightness-110"
-                                onClick={() => convertMutation.mutate({ id: lead._id })}
-                                disabled={convertMutation.isPending}
-                              >
-                                Convert
-                              </button>
-                            ) : null}
-                            <button
-                              type="button"
-                              className="text-xs text-red-400 hover:underline"
-                              onClick={() => setLeadPendingDelete(lead._id)}
-                              disabled={deleteMutation.isPending}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p className="p-8 text-center text-sm text-muted">
-                  No leads in this stage yet.
-                </p>
-              )}
-            </div>
-            );
-          })}
-        </div>
-        )}
-
-      </div>
-      </ScrollContainer>
-
-      <div className="rounded-xl border border-gold/20 bg-surface-card overflow-x-auto">
+      <div className="rounded-xl border border-gold/20 bg-surface-card overflow-x-auto mb-8">
         <div className="p-4 border-b border-gold/20">
           <p className="text-sm font-medium text-ink-secondary">Clients</p>
-          <p className="text-xs text-muted">Converted accounts · use in Finance for invoicing.</p>
+          <p className="text-xs text-muted">
+            Converted accounts · invoice and payment status live under Finance.
+          </p>
         </div>
         <table className="w-full text-sm">
           <thead>
@@ -635,7 +480,6 @@ export default function SalesPage() {
               <th className="p-3">Company</th>
               <th className="p-3">Contact</th>
               <th className="p-3 text-right">Deal value</th>
-              <th className="p-3">Payment</th>
               <th className="p-3 text-right text-xs font-normal">Hub</th>
             </tr>
           </thead>
@@ -645,7 +489,6 @@ export default function SalesPage() {
                 <td className="p-3 font-medium">{c.company}</td>
                 <td className="p-3 text-muted">{c.contactPerson}</td>
                 <td className="p-3 text-right">{formatInr(c.dealValue ?? 0)}</td>
-                <td className="p-3 text-xs">{c.paymentStatus ?? "—"}</td>
                 <td className="p-3 text-right">
                   <Link href={`/clients/${c._id}`} className="text-xs text-gold-bright hover:underline">
                     Projects
