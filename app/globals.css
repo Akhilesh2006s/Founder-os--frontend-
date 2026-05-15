@@ -1,0 +1,293 @@
+@import "tailwindcss";
+
+@config "../tailwind.config.ts";
+
+
+
+/* Dark (default): black + gold accents */
+
+html.dark {
+
+  color-scheme: dark;
+
+  --color-surface: #020202;
+
+  --color-surface-card: #0a0a0b;
+
+  --color-surface-lift: #131316;
+
+  --color-surface-input: #1a1812;
+
+  --color-muted: #9d968a;
+
+  --color-gold: #c9a227;
+
+  --color-gold-bright: #e8cf6a;
+
+  --color-gold-dim: #6b5f32;
+
+  --color-ink: #f5f2ea;
+
+  --color-ink-secondary: #e4e2dc;
+
+  --gradient-spot: rgba(201, 162, 39, 0.08);
+
+  --gradient-base: #020202;
+
+  --scrollbar-thumb-top: #e8cf6a;
+
+  --scrollbar-thumb-mid: #c9a227;
+
+  --scrollbar-thumb-bot: #a68b2e;
+
+  --scrollbar-thumb-hover-top: #f4e4a6;
+
+  --scrollbar-thumb-hover-mid: #e8cf6a;
+
+  --scrollbar-thumb-hover-bot: #c9a227;
+
+  --scrollbar-track: #070708;
+
+  --scrollbar-border: rgba(201, 162, 39, 0.12);
+
+  --scrollbar-thumb-border: #070708;
+
+  --scrollbar-corner: #020202;
+
+  --shadow-gold: 0 0 28px rgba(201, 162, 39, 0.15);
+
+  --gold-cta-from: #e8cf6a;
+
+  --gold-cta-to: #c9a227;
+
+  --gold-cta-text: #0a0a0a;
+
+}
+
+
+
+/* Light: cream / warm ivory + espresso brown accents */
+
+html:not(.dark) {
+
+  color-scheme: light;
+
+  --color-surface: #f7f3ec;
+
+  --color-surface-card: #fffcf7;
+
+  --color-surface-lift: #efe8dc;
+
+  --color-surface-input: #e8dfd2;
+
+  --color-muted: #7a6656;
+
+  --color-gold: #5c3d27;
+
+  --color-gold-bright: #4a3220;
+
+  --color-gold-dim: #8f704e;
+
+  --color-ink: #362a21;
+
+  --color-ink-secondary: #4d3f33;
+
+  --gradient-spot: rgba(92, 61, 39, 0.1);
+
+  --gradient-base: #f7f3ec;
+
+  --scrollbar-thumb-top: #a67c52;
+
+  --scrollbar-thumb-mid: #7a5638;
+
+  --scrollbar-thumb-bot: #5c3d27;
+
+  --scrollbar-thumb-hover-top: #bf9368;
+
+  --scrollbar-thumb-hover-mid: #8f6641;
+
+  --scrollbar-thumb-hover-bot: #6b4423;
+
+  --scrollbar-track: #ebe3d9;
+
+  --scrollbar-border: rgba(92, 61, 39, 0.18);
+
+  --scrollbar-thumb-border: #e0d6cb;
+
+  --scrollbar-corner: #f7f3ec;
+
+  --shadow-gold: 0 0 28px rgba(92, 61, 39, 0.12);
+
+  --gold-cta-from: #f2e4d2;
+
+  --gold-cta-to: #c9a56c;
+
+  --gold-cta-text: #241c16;
+
+}
+
+
+
+html,
+
+body {
+
+  margin: 0;
+
+  padding: 0;
+
+  background: radial-gradient(ellipse 120% 80% at 50% -20%, var(--gradient-spot), transparent 45%), var(--gradient-base);
+
+  color: var(--color-ink);
+
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+}
+
+
+
+html.dark ::selection {
+
+  background: rgba(201, 162, 39, 0.35);
+
+  color: #0a0a0a;
+
+}
+
+
+
+html:not(.dark) ::selection {
+
+  background: rgba(124, 90, 54, 0.28);
+
+  color: #1a1510;
+
+}
+
+
+
+a {
+
+  color: inherit;
+
+  text-decoration: none;
+
+}
+
+
+
+* {
+
+  scrollbar-width: thin;
+
+  scrollbar-color: var(--scrollbar-thumb-mid) var(--scrollbar-track);
+
+}
+
+
+
+*::-webkit-scrollbar {
+
+  width: 10px;
+
+  height: 10px;
+
+}
+
+
+
+*::-webkit-scrollbar-track {
+
+  background: var(--scrollbar-track);
+
+  border-radius: 9999px;
+
+  box-shadow: inset 0 0 0 1px var(--scrollbar-border);
+
+}
+
+
+
+*::-webkit-scrollbar-thumb {
+
+  background: linear-gradient(
+
+    180deg,
+
+    var(--scrollbar-thumb-top) 0%,
+
+    var(--scrollbar-thumb-mid) 55%,
+
+    var(--scrollbar-thumb-bot) 100%
+
+  );
+
+  border-radius: 9999px;
+
+  border: 2px solid var(--scrollbar-thumb-border);
+
+}
+
+
+
+*::-webkit-scrollbar-thumb:hover {
+
+  background: linear-gradient(
+
+    180deg,
+
+    var(--scrollbar-thumb-hover-top) 0%,
+
+    var(--scrollbar-thumb-hover-mid) 50%,
+
+    var(--scrollbar-thumb-hover-bot) 100%
+
+  );
+
+}
+
+
+
+*::-webkit-scrollbar-corner {
+
+  background: var(--scrollbar-corner);
+
+}
+
+
+
+/* Scrollable regions that should not show a scrollbar (wheel/touch still works) */
+
+.scrollbar-hide {
+
+  scrollbar-width: none;
+
+  -ms-overflow-style: none;
+
+}
+
+
+
+.scrollbar-hide::-webkit-scrollbar {
+
+  display: none;
+
+  width: 0;
+
+  height: 0;
+
+}
+
+
+
+/* Primary action buttons: distinct gradient in dark vs light */
+
+.bg-gold-cta {
+
+  background: linear-gradient(to bottom, var(--gold-cta-from), var(--gold-cta-to));
+
+  color: var(--gold-cta-text);
+
+}
+
+
